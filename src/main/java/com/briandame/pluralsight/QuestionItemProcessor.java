@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * QuestionItemProcessor -
@@ -21,7 +21,7 @@ public class QuestionItemProcessor implements ItemProcessor<Question,Question> {
         Integer status = Question.STATUS_ACTIVE;
         String operator = source.parseOperator();
 
-        Instant now = Instant.now();
+        LocalDateTime now = LocalDateTime.now();
 
         Question question = new Question();
         question.setQuestion(source.getQuestion());
