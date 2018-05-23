@@ -77,7 +77,7 @@ public class QuestionsController {
         LocalDateTime now = LocalDateTime.now();
         updatedQuestion.setQuestion(question.getQuestion());
         updatedQuestion.setAnswer(question.getAnswer());
-        updatedQuestion.setDistractorsList(question.getDistractorsList());
+        updatedQuestion.setDistrators(question.getDistractors());
         updatedQuestion.setUpdatedAt(now);
 
         repository.save(question);

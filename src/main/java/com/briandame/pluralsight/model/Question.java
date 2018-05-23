@@ -1,17 +1,13 @@
 package com.briandame.pluralsight.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Question -
@@ -45,7 +41,6 @@ public class Question {
     private Integer answer;
 
     @Column(name = "distractors")
-    @JsonIgnore
     private String distrators;
 
     @Column(name = "operator")
@@ -115,30 +110,8 @@ public class Question {
         return distrators;
     }
 
-    @JsonProperty("distractors")
-    public List<Integer> getDistractorsList() {
-        List<Integer> list = new ArrayList<>();
-        String[] array = distrators.replace(" ", "").split(",");
-        for (String value : array) {
-            try {
-                Integer intDistractor = Integer.parseInt(value);
-                list.add(intDistractor);
-            } catch (Exception ex) {
-                LOG.error(ex.getMessage(), ex);
-            }
-        }
-        return list;
-    }
-
     public void setDistrators(String distrators) {
         this.distrators = distrators;
-    }
-
-    @JsonProperty("distractors")
-    public void setDistractorsList(List<Integer> list) {
-        List<String> strings = list.stream().map(Object::toString)
-                .collect(Collectors.toList());
-        distrators = String.join(",", strings);
     }
 
     public String getOperator() {

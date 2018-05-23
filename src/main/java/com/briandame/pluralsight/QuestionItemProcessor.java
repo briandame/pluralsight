@@ -127,8 +127,15 @@ public class QuestionItemProcessor implements ItemProcessor<Question,Question> {
      * @return a boolean value
      */
     private boolean isDistractorListValid(Question source) {
-        for (Integer distractor : source.getDistractorsList()) {
-            if (distractor.equals(source.getAnswer())) {
+        String[] array = source.getDistractors().replace(" ", "").split(",");
+        for (String value : array) {
+            try {
+                Integer intDistractor = Integer.parseInt(value);
+                if (intDistractor.equals(source.getAnswer())) {
+                    return false;
+                }
+            } catch (Exception ex) {
+                LOG.error(ex.getMessage(), ex);
                 return false;
             }
         }
