@@ -1,4 +1,4 @@
-# Pluralsight Coding Challenge
+# Pluralsight Coding Challenge - Back End
 Spring Boot application that implements the Pluralsight coding challenge
 
 https://dame-pluralsight.herokuapp.com/questions
