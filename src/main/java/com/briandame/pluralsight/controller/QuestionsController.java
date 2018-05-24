@@ -34,7 +34,9 @@ public class QuestionsController {
             @RequestParam(name = "size", required = false, defaultValue = "20") Integer size) {
 
         Sort sort = Sort.by(Sort.Order.desc("id"));
-        Page<Question> questions = repository.findAll(PageRequest.of(page, size, sort));
+        Page<Question> questions = repository.findAllByStatusNot(
+                Question.STATUS_DELETED,
+                PageRequest.of(page, size, sort));
         return new ResponseEntity<>(questions, HttpStatus.OK);
     }
 
@@ -42,10 +44,16 @@ public class QuestionsController {
     @ResponseBody
     public HttpEntity<?> findById(@PathVariable("id") Long id) {
 
-        Optional<Question> question = repository.findById(id);
-        if (!question.isPresent()) {
+        Optional<Question> optionalQuestion = repository.findById(id);
+        if (!optionalQuestion.isPresent()) {
             return ResponseEntity.notFound().build();
         }
+
+        Question question = optionalQuestion.get();
+        if (question.getStatus().equals(Question.STATUS_DELETED)) {
+            return ResponseEntity.notFound().build();
+        }
+
         return new ResponseEntity<>(question, HttpStatus.OK);
     }
 
@@ -82,5 +90,20 @@ public class QuestionsController {
 
         repository.save(updatedQuestion);
         return new ResponseEntity<>(updatedQuestion, HttpStatus.OK);
+    }
+
+    @DeleteMapping(path = "/{id}")
+    @ResponseBody
+    public HttpEntity<?> delete(@PathVariable("id") final Long id) {
+
+        Optional<Question> questionOptional = repository.findById(id);
+        if (!questionOptional.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Question question = questionOptional.get();
+        question.setStatus(Question.STATUS_DELETED);
+        repository.save(question);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
