@@ -21,7 +21,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping(path = "/questions")
-@CrossOrigin
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class QuestionsController {
 
     @Autowired
