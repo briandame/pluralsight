@@ -21,6 +21,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping(path = "/questions")
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class QuestionsController {
 
     @Autowired
@@ -28,7 +29,6 @@ public class QuestionsController {
 
     @GetMapping
     @ResponseBody
-    @CrossOrigin(origins = "*", maxAge = 3600)
     public HttpEntity<?> list(
             @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
             @RequestParam(name = "size", required = false, defaultValue = "20") Integer size) {
@@ -42,7 +42,6 @@ public class QuestionsController {
 
     @GetMapping(path="/{id}")
     @ResponseBody
-    @CrossOrigin(origins = "*", maxAge = 3600)
     public HttpEntity<?> findById(@PathVariable("id") Long id) {
 
         Optional<Question> optionalQuestion = repository.findById(id);
@@ -60,7 +59,6 @@ public class QuestionsController {
 
     @PostMapping
     @ResponseBody
-    @CrossOrigin(origins = "*", maxAge = 3600)
     public HttpEntity<?> create(@RequestBody Question question) {
 
         LocalDateTime now = LocalDateTime.now();
@@ -74,7 +72,6 @@ public class QuestionsController {
 
     @PutMapping(path = "/{id}")
     @ResponseBody
-    @CrossOrigin(origins = "*", maxAge = 3600)
     public HttpEntity<?> update(
             @PathVariable("id") final Long id,
             @RequestBody Question question) {
@@ -97,7 +94,6 @@ public class QuestionsController {
 
     @DeleteMapping(path = "/{id}")
     @ResponseBody
-    @CrossOrigin(origins = "*", maxAge = 3600)
     public HttpEntity<?> delete(@PathVariable("id") final Long id) {
 
         Optional<Question> questionOptional = repository.findById(id);
@@ -109,11 +105,5 @@ public class QuestionsController {
         question.setStatus(Question.STATUS_DELETED);
         repository.save(question);
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
-    @CrossOrigin(origins = "*", maxAge = 3600)
-    public ResponseEntity handle() {
-        return new ResponseEntity(HttpStatus.OK);
     }
 }
