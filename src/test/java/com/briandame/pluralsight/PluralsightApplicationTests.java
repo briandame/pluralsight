@@ -25,7 +25,7 @@ public class PluralsightApplicationTests {
         source = new Question();
         source.setQuestion("What is 2 + 2?");
         source.setAnswer(4);
-        source.setDistrators("5,6,7,8");
+        source.setDistractors("5,6,7,8");
 	}
 
 	@Test
@@ -103,7 +103,7 @@ public class PluralsightApplicationTests {
 
     @Test
     public void testInvalidDistractors() {
-        source.setDistrators("1,2,3,4");
+        source.setDistractors("1,2,3,4");
         Question question = processor.process(source);
         assertThat(question.getStatus(), is(Question.STATUS_ERROR));
     }

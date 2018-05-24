@@ -55,7 +55,7 @@ public class QuestionsController {
 
         LocalDateTime now = LocalDateTime.now();
         question.setStatus(Question.STATUS_ACTIVE);
-        question.setOperator(question.parseOperator());
+        question.parseOperator();
         question.setCreatedAt(now);
         question.setUpdatedAt(now);
         repository.save(question);
@@ -74,14 +74,13 @@ public class QuestionsController {
         }
 
         Question updatedQuestion = questionOptional.get();
-
-        LocalDateTime now = LocalDateTime.now();
         updatedQuestion.setQuestion(question.getQuestion());
         updatedQuestion.setAnswer(question.getAnswer());
-        updatedQuestion.setDistrators(question.getDistractors());
-        updatedQuestion.setUpdatedAt(now);
+        updatedQuestion.setDistractors(question.getDistractors());
+        updatedQuestion.parseOperator();
+        updatedQuestion.setUpdatedAt(LocalDateTime.now());
 
-        repository.save(question);
-        return new ResponseEntity<>(question, HttpStatus.OK);
+        repository.save(updatedQuestion);
+        return new ResponseEntity<>(updatedQuestion, HttpStatus.OK);
     }
 }

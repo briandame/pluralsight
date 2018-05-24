@@ -7,7 +7,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Question -
@@ -41,7 +45,7 @@ public class Question {
     private Integer answer;
 
     @Column(name = "distractors")
-    private String distrators;
+    private String distractors;
 
     @Column(name = "operator")
     @JsonIgnore
@@ -63,23 +67,117 @@ public class Question {
     public Question(String question, Integer answer, String distractors) {
         this.question = question;
         this.answer = answer;
-        this.distrators = distractors;
+        this.distractors = distractors;
     }
 
-    public String parseOperator() {
-        String operator = null;
-        if (this.getQuestion().contains(Question.OPERATOR_ADD)) {
-            operator = Question.OPERATOR_ADD;
-        } else if (this.getQuestion().contains(Question.OPERATOR_SUBTRACT)) {
-            operator = Question.OPERATOR_SUBTRACT;
-        } else if (this.getQuestion().contains(Question.OPERATOR_MULTIPLY)) {
-            operator = Question.OPERATOR_MULTIPLY;
-        } else if (this.getQuestion().contains(Question.OPERATOR_DIVIDE)) {
-            operator = Question.OPERATOR_DIVIDE;
+    /**
+     * Validates the assumption that a question has a valid operator and that
+     * it represents addition, subtraction, multiplication or division.
+     *
+     *
+     * @return a String value representing a valid operator or null if a valid operator is not found.
+     */
+    public void parseOperator() {
+        status = STATUS_ACTIVE;
+        if (this.getQuestion().contains(OPERATOR_ADD)) {
+            operator = OPERATOR_ADD;
+        } else if (this.getQuestion().contains(OPERATOR_SUBTRACT)) {
+            operator = OPERATOR_SUBTRACT;
+        } else if (this.getQuestion().contains(OPERATOR_MULTIPLY)) {
+            operator = OPERATOR_MULTIPLY;
+        } else if (this.getQuestion().contains(OPERATOR_DIVIDE)) {
+            operator = OPERATOR_DIVIDE;
         } else {
-            status = Question.STATUS_ERROR;
+            status = STATUS_ERROR;
         }
-        return operator;
+    }
+
+    /**
+     * Validates the assumption that there are only two integers in the question
+     * and that performing the operation results in the provided answer.
+     */
+    public void validateQuestionAndAnswer() {
+        if (status.equals(STATUS_ERROR)) {
+            return;
+        }
+
+        if (question == null || answer == null) {
+            status = STATUS_ERROR;
+            return;
+        }
+
+        Pattern pattern = Pattern.compile("-?\\d+");
+        Matcher matcher = pattern.matcher(question);
+        List<Integer> values = new ArrayList<>();
+        while (matcher.find()) {
+            Integer value = Integer.parseInt(matcher.group());
+            values.add(value);
+        }
+
+        if (values.size() != 2) {
+            LOG.error("Expected values size 2 (actual " + values.size() + ")");
+            status = STATUS_ERROR;
+        } else {
+            boolean isValid = true;
+            Integer value1 = values.get(0);
+            Integer value2 = values.get(1);
+            switch (operator) {
+                case Question.OPERATOR_ADD:
+                    Integer addResult = value1 + value2;
+                    isValid = addResult.equals(answer);
+                    if (!isValid) {
+                        LOG.error("Add error: " + value1 + " + " + value2 + " = " + answer);
+                    }
+                    break;
+                case Question.OPERATOR_SUBTRACT:
+                    Integer subtractResult = value1 - value2;
+                    isValid = subtractResult.equals(answer);
+                    if (!isValid) {
+                        LOG.error("Subtract error: " + value1 + " - " + value2 + " = " + answer);
+                    }
+                    break;
+                case Question.OPERATOR_MULTIPLY:
+                    Integer multiplyResult = value1 * value2;
+                    isValid = multiplyResult.equals(answer);
+                    if (!isValid) {
+                        LOG.error("Multiply error: " + value1 + " * " + value2 + " = " + answer);
+                    }
+                    break;
+                case Question.OPERATOR_DIVIDE:
+                    Integer divideResult = value1 / value2;
+                    isValid = divideResult.equals(answer);
+                    if (!isValid) {
+                        LOG.error("Divide error: " + value1 + " / " + value2 + " = " + answer);
+                    }
+                    break;
+            }
+
+            if (!isValid) {
+                status = STATUS_ERROR;
+            }
+        }
+    }
+
+    /**
+     * Validates that none of the distractors is the same value as the answer.
+     *
+     * @return a boolean value
+     */
+    public void validateDistractorList() {
+        String[] array = distractors.replace(" ", "").split(",");
+        for (String value : array) {
+            try {
+                Integer intDistractor = Integer.parseInt(value);
+                if (intDistractor.equals(answer)) {
+                    status = STATUS_ERROR;
+                    return;
+                }
+            } catch (Exception ex) {
+                LOG.error(ex.getMessage(), ex);
+                status = STATUS_ERROR;
+                return;
+            }
+        }
     }
 
     public Long getId() {
@@ -107,11 +205,11 @@ public class Question {
     }
 
     public String getDistractors() {
-        return distrators;
+        return distractors;
     }
 
-    public void setDistrators(String distrators) {
-        this.distrators = distrators;
+    public void setDistractors(String distractors) {
+        this.distractors = distractors;
     }
 
     public String getOperator() {
@@ -152,7 +250,7 @@ public class Question {
                 "id=" + id +
                 ", question='" + question + '\'' +
                 ", answer=" + answer +
-                ", distrators=" + distrators +
+                ", distractors=" + distractors +
                 ", operator='" + operator + '\'' +
                 ", status=" + status +
                 ", createdAt=" + createdAt +
@@ -165,18 +263,11 @@ public class Question {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Question question1 = (Question) o;
-        return Objects.equals(id, question1.id) &&
-                Objects.equals(question, question1.question) &&
-                Objects.equals(answer, question1.answer) &&
-                Objects.equals(distrators, question1.distrators) &&
-                Objects.equals(operator, question1.operator) &&
-                Objects.equals(status, question1.status) &&
-                Objects.equals(createdAt, question1.createdAt) &&
-                Objects.equals(updatedAt, question1.updatedAt);
+        return Objects.equals(id, question1.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, question, answer, distrators, operator, status, createdAt, updatedAt);
+        return Objects.hash(id);
     }
 }
